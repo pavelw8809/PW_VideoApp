@@ -1,0 +1,19 @@
+.MovieCard {
+    margin: 10px;
+    border-radius: 5px;
+    padding: 5px;
+    box-shadow: 5px 5px 5px #ccc;
+}
+
+.MovieCardBody {
+    padding: 5px 10px;
+}
+
+.MovieImg {
+    width: 150px;
+}
+
+.MovieCard:hover {
+    transform: scale(1.03);
+    transition: 2s;
+}

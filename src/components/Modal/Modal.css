@@ -1,0 +1,6 @@
+.Modal {
+    background-color: #aaa;
+    position: fixed;
+    top: 30vh;
+    height: 300px;
+}

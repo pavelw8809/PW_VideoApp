@@ -1,0 +1,17 @@
+.Jumbotron {
+    text-align: center;
+}
+
+.SearchBtn {
+    margin: 10px;
+}
+
+.ErrorInfo {
+    color: red;
+}
+
+.PrevModal {
+    position: fixed;
+    top: 30%;
+    width: 70%
+}

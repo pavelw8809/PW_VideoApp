@@ -1,4 +1,23 @@
 .Header {
     background-color: #222;
     color: #eee;
+    display: flex;
+    align-items: center;
+}
+
+.Navbar {
+    padding-left: 0;
+}
+
+.NavLink {
+    color: #eee;
+    font-size: 1.2em;
+    padding: 10px 15px;
+    margin: 5px;
+    border-radius: 5px;
+}
+
+.Active {
+    background-color: yellowgreen;
+    color: #222;
 }
