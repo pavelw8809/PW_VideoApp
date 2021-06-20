@@ -8,11 +8,10 @@ const movieData = (props) => {
     let movieInfo;
 
     if (!props.title) {
-        movieInfo = <h3>Find something great!</h3>;
+        movieInfo = <h3>Error</h3>;
     } else {
         movieInfo = (
             <Container fluid className="MovieInfo">
-                <p>SEARCHING RESULT:</p>
                 <Media onClick={props.preview} className="MovieCard">
                     <Media left>
                         <Media object src={props.image} alt={props.image} className="MovieImg"/>

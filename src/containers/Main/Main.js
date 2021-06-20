@@ -13,21 +13,27 @@ const Main = () => {
 
     const [isError, setIsError] = useState(false);
     const [errorInfo, setErrorInfo] = useState("The specified address was not find. Please paste Youtube or Vimeo link");
-    const [showModal, setShowModal] = useState(false);
+    const [showModal, setShowModal] = useState(true);
 
-    const [videoPortal, setVideoPortal] = useState("");
+    //const [videoPortal, setVideoPortal] = useState("");
     const [videoID, setVideoID] = useState("");
-    const [videoName, setVideoName] = useState("");
-    const [videoImg, setVideoImg] = useState("");
+
+    const [videoData, setVideoData] = useState([]);
+    const [currentVideo, setCurrentVideo] = useState(0);
+    //const [videoData2, setVideoData2] = useState([]);
+
+    const [resNo, serResNo] = useState(100);
 
     const extVideoLinks = {
         youtu: {
+            abbr: "youtu",
             idlength: 11,
-            address: "https://youtube.googleapis.com/youtube/v3/videos?part=snippet&id="
+            address: "http://www.youtube.com/watch?v="
         },
         vimeo: {
+            abbr: "vimeo",
             idlength: 9,
-            address: "https://api.vimeo.com/oauth/authorize/client"
+            address: "https://vimeo.com"
         }
     }
 
@@ -38,15 +44,81 @@ const Main = () => {
         setSearchInput(event.target.value);
     }
 
+    const enterListener = (event) => {
+        if (event.charCode === 13) {
+            findVideo();
+        }
+    }
+
+    const findMovieId = (data) => {
+
+        let movieID;
+        let slashIndex = searchInput.lastIndexOf('/');
+        let equalIndex = searchInput.indexOf("=");
+
+        if (equalIndex > -1) {
+            movieID = data.substring(equalIndex+1, equalIndex+12);
+        } else {
+            movieID = data.substring(slashIndex+1, data.length);
+        }
+
+        return movieID
+    }
+
     const findVideo = () => {
 
-        let slashIndex = searchInput.lastIndexOf('/');
-        let equalIndex = searchInput.lastIndexOf("=")
-        let movieID, videoPortal;
+        setVideoData([]);
 
-        if (searchInput.includes(".")) {
+        //let videoPortal;
+        let option = 0;
+        let videoPortal = null;
+        let regexp1 = /^[A-Za-z0-9]*([a-zA-Z]+[0-9]+|[0-9]+[a-zA-Z]+)/;
+        let regexp2 = /^\d{9}/
+
+        if (searchInput.includes(".") && searchInput.includes("/")) {
+            for (let vlink in extVideoLinks) {
+                if (searchInput.length === extVideoLinks[vlink].idlength) {
+                    //setVideoID(movieID);
+                    //setVideoPortal(vlink);
+                    videoPortal = vlink;
+                }
+            }
+            option = 3;
+            //console.log(equalIndex);
+        }
+        if (searchInput.length === extVideoLinks.youtu.idlength && regexp1.test(searchInput)) {
+            option = 1;
+        }
+        if (searchInput.length === extVideoLinks.vimeo.idlength && regexp2.test(searchInput)) {
+            option = 2;
+        }
+
+        switch(option) {
+            case 1:
+                //setVideoID(searchInput);
+                //setVideoPortal("youtu");
+                sendQuery(searchInput, "youtu");
+                break;
+            case 2:
+                //setVideoID(searchInput);
+                //setVideoPortal("vimeo");
+                sendQuery(searchInput, "vimeo");
+                break;
+            case 3:
+                let movieId = findMovieId(searchInput);
+                //console.log(movieId);
+                sendQuery(movieId, videoPortal);
+                break;
+            default: 
+                vimeoSearch();
+                youtubeSearch();
+                console.log("default");
+        }
+/*
+        if (searchInput.includes(".") && searchInput.includes("/")) {
             if (equalIndex > -1) {
-                movieID = searchInput.substring(equalIndex+1, searchInput.length);
+                movieID = searchInput.substring(equalIndex+1, equalIndex+12);
+                console.log(movieID);
                 setVideoID(movieID);
             } else {
                 movieID = searchInput.substring(slashIndex+1, searchInput.length);
@@ -68,78 +140,56 @@ const Main = () => {
                 }
             }
         }
-
-        if (videoPortal) {
-            sendQuery(movieID, videoPortal);
-        } else {
-            setIsError(true);
-        }
-
-
-
-        /*
-        
-
-        if (searchInput.length < 12) {
-            setMovieID(searchInput);
-            isRightAdress = true;
-            for (let vlink in extVideoLinks) {
-                if (searchInput.length === extVideoLinks[vlink].idlength) {
-                    setVideoPortal(vlink);
-                }
-            }
-        } else {
-            for (let vlink in extVideoLinks) {
-                if (searchInput.includes(vlink)) {
-                    isRightAdress = true;
-                    setVideoPortal(vlink);
-                    setMovieID(searchInput.substring(searchInput.length-extVideoLinks[vlink].idlength, searchInput.length));
-                }
-            }
-        }
-
-        if (!isRightAdress) {
-            setIsError(true);
-        } else {
-            setIsError(false);
-            //sendQuery();
-        }
-        */
-/*
-        for (let vlink in videoLinks) {
-            if (searchInput.includes(videoLinks[vlink])) {
-
-                foundDomain = videoLinks[vlink]
-
-                //const movieId = searchInput.split('=')
-
-                //axios.get("https://youtube.googleapis.com/youtube/v3/videos?part=snippet&id=" + movieId + "&key=" + `${process.env.REACT_APP_APIKEY}`)
-                console.log(videoLinks[vlink])
-            }
 */
+        //if (videoPortal) {
+        //    sendQuery(videoID);
+        //} else {
+        //    setIsError(true);
+        //}
     }
 
     const sendQuery = (movie, portal) => {
 
         switch(portal) {
             case "youtu":
+                //console.log(videoPortal);
                 youtubeQuery(movie);
                 break;
             case "vimeo":
                 vimeoQuery(movie);
                 break;
+            default:
+                console.log(portal);
         }
     }
 
     const youtubeQuery = (movie) => {
-        axios.get("https://youtube.googleapis.com/youtube/v3/videos?part=snippet&id=" + movie + "&key=" + `${process.env.REACT_APP_APIYTKEY}`)
+        axios.get("https://youtube.googleapis.com/youtube/v3/videos", {
+            params: {
+                part: 'snippet',
+                id: movie,
+                key: `${process.env.REACT_APP_APIYTKEY}`
+            }
+        })
         .then(res => {
             setIsError(false);
-            console.log(res.data);
             if (res.data.items.length > 0) {
-                //setVID(res.data.items[0].id);
-                setVideoName(res.data.items[0].snippet.title);
-                setVideoImg(res.data.items[0].snippet.thumbnails.default.url);
+                let readyData = [];
+                res.data.items.map((r, id) => {
+                    return(
+                        readyData.push({
+                            name: r.snippet.title,
+                            img: r.snippet.thumbnails.default.url,
+                            link: extVideoLinks.youtu.address + r.id
+                        })
+                    );
+                })
+                setVideoData(videoData => [...videoData, {
+                    name: res.data.items[0].snippet.title,
+                    img: res.data.items[0].snippet.thumbnails.default.url,
+                    link: extVideoLinks.youtu.address + movie,
+                    portal: "youtube"
+                }]);
             } else {
                 setIsError(true);
                 setErrorInfo("Error 404: The movie could not be found");
@@ -154,7 +204,7 @@ const Main = () => {
     const vimeoQuery = (movie) => {
         axios.post("https://api.vimeo.com/oauth/authorize/client", 
             { grant_type: 'client_credentials', scope: "public" },
-            { headers: { Authorization: "Basic " + btoa(`${process.env.REACT_APP_APIVIMEOID}` + ":" + `${process.env.REACT_APP_APIVIMEOSECRET}`)}}
+            { headers: { Authorization: "Basic " + btoa(`${process.env.REACT_APP_APIVIMEOID}:${process.env.REACT_APP_APIVIMEOSECRET}`)}}
         )
         .then(res => {
             axios.get("https://api.vimeo.com/videos/" + movie,
@@ -163,8 +213,13 @@ const Main = () => {
             }})
             .then(res => {
                 setIsError(false);
-                setVideoName(res.data.name);
-                setVideoImg(res.data.pictures.sizes[1].link);
+                setVideoData(videoData => [...videoData, {
+                    name: res.data.name,
+                    img: res.data.pictures.sizes[1].link,
+                    link: res.data.link,
+                    portal: "vimeo"
+                }]);     
+                console.log(res.data);
             })
             .catch(err => {
                 setIsError(true);
@@ -176,12 +231,102 @@ const Main = () => {
         })
     }
 
-    const showPreview = () => {
+    const youtubeSearch = () => {
+        axios.get("https://youtube.googleapis.com/youtube/v3/search", {
+            params: {
+                part: 'snippet',
+                q: searchInput,
+                maxResults: 25,
+                key: `${process.env.REACT_APP_APIYTKEY}`
+            }
+        })
+        .then(res => {
+            console.log(res.data);
+            res.data.items.map((r, id) => {
+                return(
+                    setVideoData(videoData => [...videoData, ({
+                        name: r.snippet.title,
+                        img: r.snippet.thumbnails.default.url,
+                        link: extVideoLinks.youtu.address + r.id.videoId,
+                        portal: "youtube"
+                    })])
+                )
+            });
+        })
+        .catch(err => {
+            console.log(err);
+        })
+    }
+
+    const vimeoSearch = () => {
+        axios.post("https://api.vimeo.com/oauth/authorize/client", 
+            { grant_type: 'client_credentials', scope: "public" },
+            { headers: { Authorization: "Basic " + btoa(`${process.env.REACT_APP_APIVIMEOID}:${process.env.REACT_APP_APIVIMEOSECRET}`)}}
+        )
+        .then(res => {
+            axios.get("https://api.vimeo.com/videos", {
+                params: {
+                    query: searchInput
+                },
+                headers: {
+                    Authorization: `bearer ${res.data.access_token}`
+                }
+            })
+            .then(res => {
+                console.log(res.data);
+                res.data.data.map((r, id) => {
+                    return(
+                        setVideoData(videoData => [...videoData, ({
+                            name: r.name,
+                            img: r.pictures.sizes[3].link,
+                            link: r.link,
+                            portal: "vimeo"
+                        })])
+                    );
+                });
+            })
+            .catch(err => {
+                setIsError(true);
+                setErrorInfo(err);
+            })
+        })
+        .catch(err => {
+            console.log(err);
+        })
+    }
+
+    const showPreview = (event, id) => {
+        console.log("aaaaa" + id);
+        setCurrentVideo({
+            name: videoData[id].name, 
+            url: videoData[id].link,
+            portal: videoData[id].portal
+        })
         setShowModal(true);
     }
 
     const hidePreview = () => {
         setShowModal(false);
+    }
+
+    console.log(videoData);
+
+    let movieData = <h3>Find something interesting!</h3>
+
+    if (videoData.length > 0) {
+        movieData = (
+            <p>SEARCHING RESULT:</p>,
+            videoData.map((r, id) => {
+                console.log(id);
+                return(
+                    <MovieData 
+                        key={id}
+                        title={r.name} 
+                        image={r.img}
+                        portal={r.portal}
+                        preview={(event) => showPreview(event, id)}/>
+                )
+        }))
     }
 
     return(
@@ -191,15 +336,20 @@ const Main = () => {
                 <p className="lead">Create your amazing video list right now!</p>
                 <hr className="my-3"/>
                 <p className="lead">Past your video link here</p>
-                <Input className="VideoInput" type="text" onChange={(event) => searchHandler(event)}></Input>
+                <Input 
+                    className="VideoInput" 
+                    type="text" 
+                    onChange={(event) => searchHandler(event)}
+                    onKeyPress={(event) => enterListener(event)}></Input>
                 <Button color="warning SearchBtn" size="lg" onClick={findVideo}>SEARCH</Button>
+                <Button color="secondary SearchBtn" size="lg" onClick={youtubeSearch}>SEARCH</Button>
                 {isError ? <p className="ErrorInfo">{errorInfo}</p> : null}
             </Jumbotron>
-            <MovieData title={videoName} image={videoImg} preview={showPreview}/>
+            {movieData}
             <Modal 
-                title={videoName}
-                portal={videoPortal}
-                movieid={videoID}
+                title={currentVideo.name}
+                url={currentVideo.url}
+                portal={currentVideo.portal}
                 show={showModal} 
                 hide={hidePreview}/>
         </React.Fragment>

@@ -1,6 +1,13 @@
 .Modal {
     background-color: #aaa;
     position: fixed;
+    text-align: center;
+    width: 70%;
+    left: 15%;
     top: 30vh;
-    height: 300px;
+    transition: all 0.3s ease-out;
+}
+
+.ModalBtn {
+    margin: 5px;
 }
